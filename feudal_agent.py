@@ -7,63 +7,53 @@ import pandas as pd
 
 
 class FeudalQLearningTable:
-    def __init__(self, actions):
-        self.levels = {
-            0: FeudalLevel(actions=[4]),
-            1: FeudalLevel(actions=list(range(5))),
-            2: FeudalLevel(actions=actions)
-        }
+    def __init__(self, numberActions, numberLayers=3):
+        self.number_actions = numberActions
+        self.number_layers = numberLayers
+        self.levels = {0: FeudalLevel(actions=[numberActions])}
+        if(numberLayers > 1):
+            for i in range(1, numberLayers-1):
+                self.levels[i] = FeudalLevel(
+                    actions=list(range(numberActions+1)))
+            self.levels[numberLayers -
+                        1] = FeudalLevel(actions=list(range(numberActions)))
 
     def choose_action(self, state):
-        level_0_state, level_1_state, level_2_state = self.get_level_states(
-            state)
-        actions = [-1, -1, -1]
-        actions[0] = self.levels[0].choose_action(level_0_state)
-        actions[1] = self.levels[1].choose_action(level_1_state)
-        actions[2] = self.levels[2].choose_action(level_2_state)
-        level = 0
-        if actions[0] == 4:
-            level = 1
-            if actions[1] == 4:
-                level = 2
-
-        return actions, level
+        level_states = self.get_level_states(state)
+        actions = []
+        for a in range(self.number_layers):
+            actions.append(self.levels[a].choose_action(level_states[a]))
+        return actions
 
     def learn(self, s, actions, r, s_, done):
-        level_0_s, level_1_s, level_2_s = self.get_level_states(s)
-        level_0_s_, level_1_s_, level_2_s_ = self.get_level_states(s_)
+        level_states = self.get_level_states(s)
+        level_states_prime = self.get_level_states(s_)
 
         obey_reward = 0
         not_obey_reward = -1
 
-        self.levels[0].learn(level_0_s, actions[0], r, level_0_s_, done)
-        if actions[0] == 4:
-            self.levels[1].learn(level_1_s, actions[1], r, level_1_s_, done)
-            if actions[1] == 4:
-                self.levels[2].learn(
-                    level_2_s, actions[2], r, level_2_s_, done)
+        for i in range(self.number_layers):
+            if i == 0:
+                reward = r
             else:
-                if actions[2] == actions[1]:
-                    self.levels[2].learn(
-                        level_2_s, actions[2], obey_reward, level_2_s_, done)
+                if actions[i-1] == 4:
+                    reward = r
                 else:
-                    self.levels[2].learn(
-                        level_2_s, actions[2], not_obey_reward, level_2_s_, done)
-        else:
-            if actions[1] == actions[0]:
-                self.levels[1].learn(level_1_s, actions[1],
-                                     obey_reward, level_1_s_, done)
-            else:
-                self.levels[1].learn(level_1_s, actions[1],
-                                     not_obey_reward, level_1_s_, done)
+                    if actions[i-1] == actions[i]:
+                        reward = obey_reward
+                    else:
+                        reward = not_obey_reward
 
-    @staticmethod
-    def get_level_states(state):
-        level_2_state = state
-        level_1_state = (int(level_2_state[0] / 2), int(level_2_state[1] / 2))
-        level_0_state = (int(level_1_state[0] / 2), int(level_1_state[1] / 2))
+            self.levels[i].learn(level_states[i], actions[i],
+                                 reward, level_states_prime[i], done)
 
-        return level_0_state, level_1_state, level_2_state
+    def get_level_states(self, state):
+        states = []
+        states.append(state)
+        for i in range(self.number_layers-2, -1, -1):
+            states.append((int(states[-1][0]/2), int(states[-1][1]/2)))
+        states.reverse()
+        return states
 
 
 class FeudalLevel:

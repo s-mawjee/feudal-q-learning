@@ -100,7 +100,9 @@ ENV/
 # mypy
 .mypy_cache/
 
+# vs code
+
+
 # Odds
-/Analysis/frames
-/Analysis/log.csv
-level_*.csv
+
+
