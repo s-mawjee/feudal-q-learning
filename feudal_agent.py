@@ -73,7 +73,7 @@ class FeudalLevel:
         self.lr = learning_rate
         self.gamma = reward_decay
         self.epsilon = e_greedy
-        self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64)
+        self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float_)
 
     def choose_action(self, observation):
         observation = str(observation)
