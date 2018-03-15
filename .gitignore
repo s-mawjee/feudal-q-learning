@@ -101,7 +101,7 @@ ENV/
 .mypy_cache/
 
 # vs code
-.vs code
+.vscode
 
 # Odds
 /Analysis/frames
