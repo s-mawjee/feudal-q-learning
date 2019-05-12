@@ -104,7 +104,7 @@ ENV/
 .vscode
 
 # Odds
-/Analysis/frames
+/Analysis/frames/log*.csv
 /Analysis/log.csv
 /Analysis/level_*.csv
 
